@@ -1,0 +1,47 @@
+@use '../../Utils/utilities.scss';
+
+.bg-blue {
+  background-color: #016FEA;
+  width: 100vw;
+  height: 100vh;
+  @extend .flex-centered-container;
+  .login-form-layout-container {
+    width: 88vw;
+    height: 80vh;
+    display: flex;
+    .login-form-container {
+      flex: 2;
+      background-color: white;
+      padding: 5rem;
+      gap: 4rem;
+      @extend .flex-column;
+      .login-form {
+        gap: 1rem;
+        @extend .flex-column;
+        .form-submit-btn {
+          margin-top: 1rem !important;
+          padding: 1rem !important;
+        }
+      }
+    }
+  }
+  .image-container {
+    flex: 4;
+    background-image: url('../../Assets/signup-image.png');
+    background-position: 0% 56%;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+}
+
+@media only screen and (max-width: 992px) and (min-width: 769px) {
+  .image-container{
+    flex:2 !important;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .image-container{
+    display:none;
+  }
+}

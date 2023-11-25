@@ -1,0 +1,15 @@
+.flex-centered-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.informative{
+    color: #1A7CED;
+    cursor: pointer;
+}
