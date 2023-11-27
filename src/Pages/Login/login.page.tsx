@@ -13,6 +13,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema } from "../../Utils/utilities";
 import { ToastContainer, toast, ToastOptions } from "react-toastify";
+import storageHelper from "../../Utils/storage.helper";
 
 function Login() {
 	const {
@@ -32,17 +33,18 @@ function Login() {
 		const request = isLogin ? signin(userCreds) : signup(userCreds);
 
 		request
-			.then(_ => {
+			.then(res => {
 				notify(Severity.success, isLogin ? userLoginSuccess : userCreationSuccess);
 				if (!isLogin) {
 					toggleLoginState();
 				} else {
+					storageHelper.accessToken = res.data.token;
 					navigate("/dashboard");
 				}
 			})
 			.catch((err: any) => {
 				let errorText: string = "";
-				if (err.response.status == 400) {
+				if (err.response.status === 400) {
 					errorText = err.response.data.error;
 				} else {
 					errorText = miscErr;
@@ -62,7 +64,7 @@ function Login() {
 			progress: undefined,
 		};
 		console.log("Severity: ", severity);
-		if (severity == Severity.success) {
+		if (severity === Severity.success) {
 			toast.success(toastText, props);
 		} else {
 			toast.error(toastText, props);

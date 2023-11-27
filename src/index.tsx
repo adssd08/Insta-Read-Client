@@ -2,21 +2,17 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { Navigate, Route, RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
 import LoginRoute from "./Routes/login.route";
 import DashboardRoute from "./Routes/dashboard.route";
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
+import { loginLoader, protectedLoader } from "./Services/login.service";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
-const router = createBrowserRouter([
-	{
-		path: "/login",
-		element: <LoginRoute />,
-	},
-	{
-		path: "/dashboard",
-		element: <DashboardRoute />,
-	},
-]);
+const router = createBrowserRouter(createRoutesFromElements([<Route path="/login" loader={loginLoader} element={<LoginRoute />} />, <Route path="/dashboard" loader={protectedLoader} element={<DashboardRoute />} />, <Route path="*" element={<Navigate replace to="/dashboard" />} />]));
 
 root.render(
 	<React.StrictMode>
