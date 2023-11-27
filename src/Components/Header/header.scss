@@ -1,0 +1,20 @@
+@use '../../Utils/utilities.scss';
+
+.header{
+    display: flex;
+    padding: 1rem;
+    justify-content: space-between;
+    border-bottom: solid 1px #F2F2F2;
+    .search-container{
+        @extend .flex-centered-container;
+        gap:1rem;
+    }
+    .profile-container{
+        @extend .flex-centered-container;
+        gap:1rem;
+        .write-icon-container{
+            display: flex;
+            gap: 4px;
+        }
+    }
+}

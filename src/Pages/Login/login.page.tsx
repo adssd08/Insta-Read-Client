@@ -1,60 +1,79 @@
 import "./login.style.scss";
+import "react-toastify/dist/ReactToastify.css";
 import TextField from "@mui/material/TextField/TextField";
+import Typography from "@mui/material/Typography/Typography";
 import Button from "@mui/material/Button/Button";
 import { useState } from "react";
-import Snackbar from "@mui/material/Snackbar/Snackbar";
-import { Alert } from "@mui/material";
 import { LoginOptions, Severity } from "../../Utils/enums";
 import { signin, signup } from "../../Services/login.service";
 import { loginText, miscErr, signUpText, userCreationSuccess, userLoginSuccess } from "../../Utils/strings";
 import { UserCreds } from "../../Utils/interfaces";
 import { useNavigate } from "react-router-dom";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { loginSchema } from "../../Utils/utilities";
+import { ToastContainer, toast, ToastOptions } from "react-toastify";
+import storageHelper from "../../Utils/storage.helper";
 
 function Login() {
-	const [email, setEmail] = useState("");
-	const [popupText, setPopupText] = useState("");
-	const [password, setPassword] = useState("");
-	const [open, setOpen] = useState(false);
+	const {
+		register,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm<UserCreds>({
+		resolver: yupResolver(loginSchema),
+	});
+
 	const [isLogin, setIsLogin] = useState(true);
-	const [severity, setSeverity] = useState(Severity.info);
 
 	const navigate = useNavigate();
 
-	const submitCreds = () => {
-		const userCreds: UserCreds = { email, password };
+	const submitCreds: SubmitHandler<UserCreds> = (userCreds: UserCreds) => {
 		const request = isLogin ? signin(userCreds) : signup(userCreds);
 
 		request
-			.then(_ => {
-				setSeverity(Severity.success);
-				setPopupText(isLogin ? userLoginSuccess : userCreationSuccess);
+			.then(res => {
+				notify(Severity.success, isLogin ? userLoginSuccess : userCreationSuccess);
 				if (!isLogin) {
 					toggleLoginState();
 				} else {
+					storageHelper.accessToken = res.data.token;
 					navigate("/dashboard");
 				}
 			})
 			.catch((err: any) => {
-				setSeverity(Severity.error);
-				if (err.response.status == 400) {
-					setPopupText(err.response.data.error);
+				let errorText: string = "";
+				if (err.response.status === 400) {
+					errorText = err.response.data.error;
 				} else {
-					setPopupText(miscErr);
+					errorText = miscErr;
 				}
-			})
-			.finally(() => {
-				setOpen(true);
+				notify(Severity.error, errorText);
 			});
 	};
 
-	const handleClose = () => {
-		setOpen(false);
+	const notify = (severity: Severity, toastText: string) => {
+		const props: ToastOptions = {
+			position: toast.POSITION.BOTTOM_LEFT,
+			autoClose: 2000,
+			hideProgressBar: false,
+			closeOnClick: true,
+			pauseOnHover: true,
+			draggable: true,
+			progress: undefined,
+		};
+		console.log("Severity: ", severity);
+		if (severity === Severity.success) {
+			toast.success(toastText, props);
+		} else {
+			toast.error(toastText, props);
+		}
 	};
 
 	const toggleLoginState = () => {
 		setIsLogin(!isLogin);
-		setEmail("");
-		setPassword("");
+		reset({ email: "", password: "" });
 	};
 
 	return (
@@ -68,35 +87,19 @@ function Login() {
 					<div className="login-form">
 						<div className="form-field">
 							<p>E-mail</p>
-							<TextField
-								value={email}
-								onChange={event => {
-									setEmail(event.target.value);
-								}}
-								autoFocus
-								fullWidth
-								required
-								className="outlined-form-field"
-								id="outlined-basic"
-								variant="outlined"
-							/>
+							<TextField {...register("email")} autoFocus fullWidth required className="outlined-form-field" id="outlined-basic" variant="outlined" />
+							<Typography variant="caption" color={"error.main"}>
+								{errors.email?.message}
+							</Typography>
 						</div>
 						<div className="form-field">
 							<p>Password</p>
-							<TextField
-								value={password}
-								onChange={event => {
-									setPassword(event.target.value);
-								}}
-								fullWidth
-								required
-								className="outlined-form-field"
-								id="outlined-basic"
-								type="password"
-								variant="outlined"
-							/>
+							<TextField {...register("password")} fullWidth className="outlined-form-field" id="outlined-basic" type="password" variant="outlined" />
+							<Typography variant="caption" color={"error.main"}>
+								{errors.password?.message}
+							</Typography>
 						</div>
-						<Button onClick={submitCreds} className="form-submit-btn" variant="contained">
+						<Button onClick={handleSubmit(submitCreds)} className="form-submit-btn" variant="contained">
 							{isLogin ? "Log In" : "Create Account"}
 						</Button>
 					</div>
@@ -112,11 +115,7 @@ function Login() {
 				<div className="image-container"></div>
 			</div>
 
-			<Snackbar open={open} autoHideDuration={2000} onClose={handleClose}>
-				<Alert onClose={handleClose} severity={severity}>
-					{popupText}
-				</Alert>
-			</Snackbar>
+			<ToastContainer />
 		</div>
 	);
 }
