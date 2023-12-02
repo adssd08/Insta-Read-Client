@@ -13,3 +13,10 @@ export enum LoginOptions {
 export enum StorageKeys {
 	AccessToken = "AccessToken",
 }
+
+export enum TokenVerifictionErrorCodes {
+	Expired,
+	AlreadyVerified,
+	Invalid,
+	AnotherTokenSent,
+}

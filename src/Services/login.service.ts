@@ -12,6 +12,14 @@ export const signin = (userCreds: UserCreds) => {
 	return axios.post(urls.login, userCreds);
 };
 
+export const verifyEmail = (token: string) => {
+	return axios.post(urls.verifyToken, { token });
+};
+
+export const resendToken = (token: string) => {
+	return axios.post(urls.resendToken, { token });
+};
+
 export const protectedLoader = ({ request }: LoaderFunctionArgs) => {
 	if (!checkUserAuthentication()) {
 		let params = new URLSearchParams();

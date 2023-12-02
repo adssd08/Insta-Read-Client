@@ -1,14 +1,13 @@
 import "./login.style.scss";
-import "react-toastify/dist/ReactToastify.css";
 import TextField from "@mui/material/TextField/TextField";
 import Typography from "@mui/material/Typography/Typography";
 import Button from "@mui/material/Button/Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LoginOptions, Severity } from "../../Utils/enums";
 import { signin, signup } from "../../Services/login.service";
 import { loginText, miscErr, signUpText, userCreationSuccess, userLoginSuccess } from "../../Utils/strings";
 import { UserCreds } from "../../Utils/interfaces";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema } from "../../Utils/utilities";
@@ -26,21 +25,31 @@ function Login() {
 	});
 
 	const [isLogin, setIsLogin] = useState(true);
+	const [sendingRequest, setSendingRequest] = useState(false);
 
 	const navigate = useNavigate();
+	const { state } = useLocation();
+
+	useEffect(() => {
+		if (state && state.emailVerifyFailed) {
+			notify(Severity.error, state.emailVerifyFailed.reason);
+		}
+		window.history.replaceState(null, "");
+	}, []);
 
 	const submitCreds: SubmitHandler<UserCreds> = (userCreds: UserCreds) => {
 		const request = isLogin ? signin(userCreds) : signup(userCreds);
-
+		setSendingRequest(true);
 		request
 			.then(res => {
-				notify(Severity.success, isLogin ? userLoginSuccess : userCreationSuccess);
+				notify(Severity.success, isLogin ? userLoginSuccess : res.data.message);
 				if (!isLogin) {
 					toggleLoginState();
 				} else {
 					storageHelper.accessToken = res.data.token;
 					navigate("/dashboard");
 				}
+				setSendingRequest(false);
 			})
 			.catch((err: any) => {
 				let errorText: string = "";
@@ -50,6 +59,7 @@ function Login() {
 					errorText = miscErr;
 				}
 				notify(Severity.error, errorText);
+				setSendingRequest(false);
 			});
 	};
 
@@ -63,7 +73,6 @@ function Login() {
 			draggable: true,
 			progress: undefined,
 		};
-		console.log("Severity: ", severity);
 		if (severity === Severity.success) {
 			toast.success(toastText, props);
 		} else {
@@ -99,7 +108,7 @@ function Login() {
 								{errors.password?.message}
 							</Typography>
 						</div>
-						<Button onClick={handleSubmit(submitCreds)} className="form-submit-btn" variant="contained">
+						<Button disabled={sendingRequest} onClick={handleSubmit(submitCreds)} className="form-submit-btn" variant="contained">
 							{isLogin ? "Log In" : "Create Account"}
 						</Button>
 					</div>
